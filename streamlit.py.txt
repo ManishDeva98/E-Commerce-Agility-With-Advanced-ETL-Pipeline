@@ -1,0 +1,40 @@
+import streamlit as st
+import boto3
+from botocore.exceptions import NoCredentialsError
+
+# Function to upload file to S3
+def upload_to_s3(file_data, bucket_name, file_name):
+    s3 = boto3.client('s3')
+    try:
+        s3.upload_fileobj(file_data, bucket_name, file_name)
+        return f"Upload successful: {file_name}"
+    except NoCredentialsError:
+        return "Credentials not available."
+
+# Streamlit app
+def main():
+    st.title("File Upload to AWS S3")
+
+    # File uploaders
+    file1 = st.file_uploader("Choose the order file", type=["csv", "txt", "jpg", "png", "pdf",'xlsx'])
+    file2 = st.file_uploader("Choose the return file", type=["csv", "txt", "jpg", "png", "pdf",'xlsx'])
+
+    # Enter S3 bucket name
+    orders_bucket_name = "orders-lz"
+    returns_bucket_name = "returns-lz"
+
+    # Submit button
+    if st.button("Submit"):
+        if file1 is not None and file2 is not None and orders_bucket_name and returns_bucket_name:
+            # Upload the first file
+            result1 = upload_to_s3(file1, orders_bucket_name, 'orders/order.csv')
+            st.success(result1)
+
+            # Upload the second file
+            result2 = upload_to_s3(file2, returns_bucket_name, 'returns/return.csv')
+            st.success(result2)
+        else:
+            st.error("Please upload both files and enter a valid S3 bucket name.")
+
+if __name__ == "__main__":
+    main()
